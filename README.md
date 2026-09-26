@@ -30,7 +30,7 @@
 
 ## Quick install — Opus 4.6 tuned fork
 
-This fork ships a one-command installer: bench-workspace envelope v3 + `claude-opus-4-6[1m]` as default model (sub-agents included, via `ANTHROPIC_SMALL_FAST_MODEL`) + auto-compact at 500k tokens.
+This fork ships a one-command installer: bench-workspace envelope v3 + `claude-opus-4-6[1m]` as default model (sub-agents included, via `ANTHROPIC_SMALL_FAST_MODEL` + `ANTHROPIC_DEFAULT_SONNET_MODEL`/`ANTHROPIC_DEFAULT_HAIKU_MODEL` remap) + auto-compact at 500k tokens.
 
 ```
 git clone https://github.com/lieusonsg/claude-keysmith-opus46
@@ -47,7 +47,7 @@ python claude-instruct.py status --scope user --runtime
 claude -p "reply with exactly: OK"
 ```
 
-The installer always writes a timestamped `settings.json.bak_*` before patching. Uninstall envelope: `python claude-instruct.py uninstall --scope user --runtime --yes`.
+The installer always writes a timestamped `settings.json.bak_*` before patching. Uninstall envelope: `python claude-instruct.py uninstall --scope user --runtime --agents --yes`.
 
 ## 简体中文
 

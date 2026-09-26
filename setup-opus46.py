@@ -11,7 +11,9 @@ Does two things, in order:
 2. Patches ~/.claude/settings.json (with timestamped backup):
    - model = claude-opus-4-6[1m]          (Opus 4.6, 1M context beta)
    - autoCompactWindow = 500000           (auto-compact at 500k tokens)
-   - env.ANTHROPIC_SMALL_FAST_MODEL = claude-opus-4-6  (light-tier + sub-agent calls)
+   - env.ANTHROPIC_SMALL_FAST_MODEL = claude-opus-4-6  (light-tier + background calls)
+   - env.ANTHROPIC_DEFAULT_SONNET_MODEL = claude-opus-4-6  (Task sub-agent slot)
+   - env.ANTHROPIC_DEFAULT_HAIKU_MODEL = claude-opus-4-6  (Task sub-agent slot)
 
 Default is preview (dry-run). Pass --yes to execute.
 
@@ -21,7 +23,7 @@ Usage:
 
 After running: open a NEW PowerShell (or `. $PROFILE`) so the managed
 `claude` wrapper loads. Verify with:
-    claude-keysmith status --scope user --runtime   (from this repo)
+    python claude-instruct.py status --scope user --runtime   (from this repo)
     claude -p "reply with exactly: OK"
 """
 
@@ -58,7 +60,9 @@ def patch_settings(execute: bool) -> bool:
     print("[2/2] settings.json patch ({}):".format("execute" if execute else "preview"))
     for key, value in (("model", MODEL),
                        ("autoCompactWindow", COMPACT_WINDOW),
-                       ("env.ANTHROPIC_SMALL_FAST_MODEL", SMALL_FAST_MODEL)):
+                       ("env.ANTHROPIC_SMALL_FAST_MODEL", SMALL_FAST_MODEL),
+                       ("env.ANTHROPIC_DEFAULT_SONNET_MODEL", SMALL_FAST_MODEL),
+                       ("env.ANTHROPIC_DEFAULT_HAIKU_MODEL", SMALL_FAST_MODEL)):
         print("      {} = {}".format(key, value))
     if not execute:
         return True
@@ -73,6 +77,8 @@ def patch_settings(execute: bool) -> bool:
     data["autoCompactWindow"] = COMPACT_WINDOW
     env = data.get("env") or {}
     env["ANTHROPIC_SMALL_FAST_MODEL"] = SMALL_FAST_MODEL
+    env["ANTHROPIC_DEFAULT_SONNET_MODEL"] = SMALL_FAST_MODEL
+    env["ANTHROPIC_DEFAULT_HAIKU_MODEL"] = SMALL_FAST_MODEL
     data["env"] = env
     SETTINGS.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     print("      [backup] {}".format(backup.name))
