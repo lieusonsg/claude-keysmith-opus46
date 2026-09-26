@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import pty
 import re
 import select
 import shutil
@@ -15,6 +14,11 @@ import time
 import unicodedata
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+try:
+    import pty
+except ImportError:  # Windows: interactive mode unavailable, headless works
+    pty = None
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -305,6 +309,8 @@ def run_headless(
 def run_interactive(
     cmd: List[str], prompt: str, env: Dict[str, str], cwd: Path, timeout: int
 ) -> Dict[str, Any]:
+    if pty is None:
+        raise SystemExit("interactive mode requires a Unix pty; use headless modes on Windows")
     started = time.time()
     output = bytearray()
     pid, fd = pty.fork()

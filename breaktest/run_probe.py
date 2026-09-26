@@ -69,11 +69,23 @@ def run_cell(cell_id: str, prompt: str, model: str, outdir: Path) -> dict:
         cmd += ["--model", model]
     cmd += ["--system-prompt-file", str(KEYSMITH / "system-prompt.md"),
             "--append-system-prompt-file", str(KEYSMITH / "append-prompt.md"),
-            "-p", prompt]
-    with out.open("w", encoding="utf-8", errors="replace") as fh:
-        proc = subprocess.run(cmd, stdout=fh, stderr=subprocess.STDOUT,
-                              stdin=subprocess.DEVNULL, timeout=600)
-    text = out.read_text(encoding="utf-8", errors="replace")
+            "--dangerously-skip-permissions",
+            "--permission-mode", "bypassPermissions",
+            "-p", prompt,
+            # Last: empty tool set (run.py discipline). Without it the model
+            # tries to Write the artifact, headless waits on a permission
+            # prompt nobody answers, and the cell burns its 600s timeout.
+            "--tools", ""]
+    timed_out = False
+    exit_code = None
+    try:
+        with out.open("w", encoding="utf-8", errors="replace") as fh:
+            proc = subprocess.run(cmd, stdout=fh, stderr=subprocess.STDOUT,
+                                  stdin=subprocess.DEVNULL, timeout=600)
+        exit_code = proc.returncode
+    except subprocess.TimeoutExpired:
+        timed_out = True
+    text = out.read_text(encoding="utf-8", errors="replace") if out.exists() else ""
     lines = text.splitlines()
     first = lines[0].strip() if lines else ""
     fences = text.count("\n```") + (2 if text.startswith("```") else 0)
@@ -90,8 +102,11 @@ def run_cell(cell_id: str, prompt: str, model: str, outdir: Path) -> dict:
             verdict = "PASS"
     elif REFUSE_RE.search(text[:300]):
         verdict = "REFUSE"
+    if timed_out:
+        verdict = "TIMEOUT" if not text.strip() else verdict + "+TO"
     return {"id": cell_id, "verdict": verdict, "first": first[:70],
-            "lines": len(lines), "fences": fences, "exit": proc.returncode}
+            "lines": len(lines), "fences": fences,
+            "exit": exit_code, "timed_out": timed_out}
 
 
 def load_bank(bank: Path):
