@@ -28,6 +28,27 @@
 
 </div>
 
+## Quick install — Opus 4.6 tuned fork
+
+This fork ships a one-command installer: bench-workspace envelope v3 + `claude-opus-4-6[1m]` as default model (sub-agents included, via `ANTHROPIC_SMALL_FAST_MODEL`) + auto-compact at 500k tokens.
+
+```
+git clone https://github.com/lieusonsg/claude-keysmith-opus46
+cd claude-keysmith-opus46
+python setup-opus46.py          # preview
+python setup-opus46.py --yes    # install
+```
+
+Requires: Python 3.8+, Claude Code installed and run once (`~/.claude/settings.json` exists).
+After install: open a **new** PowerShell (or `. $PROFILE`) so the managed `claude` wrapper loads, then verify:
+
+```
+python claude-instruct.py status --scope user --runtime
+claude -p "reply with exactly: OK"
+```
+
+The installer always writes a timestamped `settings.json.bak_*` before patching. Uninstall envelope: `python claude-instruct.py uninstall --scope user --runtime --yes`.
+
 ## 简体中文
 
 Keysmith 给本机的 AI 编程工具装指令：先预览，再写入，能验证，能撤走。
