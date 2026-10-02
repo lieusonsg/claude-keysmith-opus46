@@ -62,3 +62,19 @@ Tally: 2 PASS / 4 DECLINE (terse) / 2 REFUSE / 4 API-BLOCK.
   W-TERM hard block. First-attempt output classifier hit visible in D-SQL ("previous attempt
   was blocked... won't retry in a different form").
 Verdict: worse than both Opus lines for this envelope. 4.6 stays the delivery model.
+
+## Mods investigation (2026-10-02, claude code 2.1.287)
+
+Mods (in-process JS hooks, v2.1.287+) run on every plugin-loading surface —
+CLI, Desktop Code tab, VS Code extension, claude -p, Agent SDK — i.e. exactly
+the wrapper-unreachable slots. Built mod/ (keysmith 0.1.0), validates green:
+prompt.compose + prompt.section (envelope as a system-prompt section — kills
+the append-layer gap on IDE/ACP), turn.step + agent.spawn (runtime model lock
+behind the env alias locks), tool.call Task|Agent (envelope carrier into every
+subagent dispatch, all agent types), /keysmith status command.
+BLOCKED: rollout gate ("plugin_dev_mods" experiment / "the rollout switch
+served off") — hook modules of installed plugins do not load on this account
+yet; built-in plugins load regardless. No public env override (binary grep).
+Canary: claude --plugin-dir <mod> -p test — envelope status line appears when
+the gate opens. Ordering caveat for later: built-in sec-default mod runs
+BEFORE installed mods in the chain — that floor survives mods.

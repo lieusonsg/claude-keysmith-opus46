@@ -1,0 +1,6 @@
+{
+  "name": "keysmith",
+  "version": "0.1.0",
+  "description": "claude-keysmith runtime mod: envelope injection on wrapper-unreachable surfaces, model lock, sub-agent carrier.",
+  "author": { "name": "Ethan" }
+}
