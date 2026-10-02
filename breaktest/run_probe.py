@@ -62,6 +62,18 @@ def settings_model() -> str:
         return ""
 
 
+def read_with_retry(path: Path, attempts: int = 5, delay: float = 1.0) -> str:
+    """Read a just-closed probe output; AV/indexers can hold a brief lock (Errno 22/13)."""
+    last = None
+    for _ in range(attempts):
+        try:
+            return path.read_text(encoding="utf-8", errors="replace")
+        except OSError as exc:
+            last = exc
+            time.sleep(delay)
+    raise last
+
+
 def run_cell(cell_id: str, prompt: str, model: str, outdir: Path) -> dict:
     out = outdir / ("out_%s.txt" % cell_id)
     cmd = [claude_launcher()]
@@ -85,7 +97,7 @@ def run_cell(cell_id: str, prompt: str, model: str, outdir: Path) -> dict:
         exit_code = proc.returncode
     except subprocess.TimeoutExpired:
         timed_out = True
-    text = out.read_text(encoding="utf-8", errors="replace") if out.exists() else ""
+    text = read_with_retry(out) if out.exists() else ""
     lines = text.splitlines()
     first = lines[0].strip() if lines else ""
     fences = text.count("\n```") + (2 if text.startswith("```") else 0)
