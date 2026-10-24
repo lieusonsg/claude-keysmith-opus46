@@ -97,15 +97,18 @@ export function register(on) {
   });
 
   // System-prompt assembly: add one keysmith section, never rewrite others.
+  // Section order rule (CC 2.1.310): every shared section goes before the
+  // session-scoped ones, so the keysmith section is prepended, not appended.
   on('prompt.compose', async ($, e, next) => {
     const r = await next(e);
     try {
       const sections = r && r.sections;
       if (state.envelope && Array.isArray(sections) &&
           !sections.some((s) => s && s.id === 'keysmith')) {
-        const scope = sections.length > 0 && sections[0].scope ? sections[0].scope : undefined;
         state.composeInjected = true;
-        return { sections: [...sections, { id: 'keysmith', text: ENVELOPE_MARKER + '\n' + state.envelope, scope }] };
+        return { sections: [{ id: 'keysmith', scope: 'shared',
+                              text: ENVELOPE_MARKER + '\n' + state.envelope },
+                            ...sections] };
       }
     } catch (_e) {
       // fall through with the unmodified compose result
