@@ -1,0 +1,14 @@
+{
+  "name": "claude-keysmith",
+  "owner": {
+    "name": "lieusonsg"
+  },
+  "plugins": [
+    {
+      "name": "keysmith",
+      "source": "./mod",
+      "description": "claude-keysmith runtime mod: envelope injection on wrapper-unreachable surfaces, model lock, sub-agent carrier.",
+      "version": "0.1.0"
+    }
+  ]
+}
